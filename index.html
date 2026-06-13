@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading Sessions</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F5F5F7;
+    --surface: #FFFFFF;
+    --border: rgba(0,0,0,0.15);
+    --text: #1D1D1F;
+    --muted: #86868B;
+    --green: #34C759;
+    --red: #FF3B30;
+  }
+  html, body { background: transparent !important; color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
+  body { display: flex; align-items: center; justify-content: center; padding: 10px 16px; }
+  .wrap { width: 100%; }
+
+  /* Weekend banner */
+  .weekend-banner {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: #FFF8EC;
+    border: 1px solid #F5C96A;
+    border-radius: 10px;
+    padding: 8px 14px;
+    margin-bottom: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #A07010;
+    letter-spacing: 0.02em;
+  }
+  .weekend-banner.visible { display: flex; }
+  .weekend-banner-dot { width: 7px; height: 7px; border-radius: 50%; background: #F5C96A; flex-shrink: 0; }
+
+  .clocks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+  .clock-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 14px 16px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 76px;
+    transition: border-color 0.3s;
+    box-shadow: none;
+    border: 1.5px solid rgba(0,0,0,0.08);
+  }
+  .clock-card.open {
+    border-color: #34C759;
+  }
+
+  .status {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #AEAEB2; }
+  .clock-card.open .status-dot { background: var(--green); animation: pulse 1.5s infinite; }
+
+  /* Badge Open/Closed */
+  .status-badge {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 6px;
+    border-radius: 20px;
+    background: #F0F0F0;
+    color: #AEAEB2;
+    white-space: nowrap;
+  }
+  .clock-card.open .status-badge {
+    background: #D4F5DF;
+    color: #1A7A38;
+  }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .info { text-align: center; }
+  .session-name { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+  .clock-card.open .session-name { color: #1D1D1F; }
+  .time { font-family: 'Inter', sans-serif; font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; line-height: 1; margin-bottom: 3px; }
+  .timezone { font-size: 9px; color: var(--muted); font-weight: 400; letter-spacing: 0.02em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="weekend-banner" id="weekend-banner">
+    <div class="weekend-banner-dot"></div>
+    Weekend — all markets closed. Trading resumes Monday.
+  </div>
+
+  <div class="clocks">
+    <div class="clock-card" id="london-card">
+      <div class="status" id="london-status">
+        <div class="status-dot"></div>
+        <span class="status-badge" id="london-status-text">Closed</span>
+      </div>
+      <div class="info">
+        <div class="session-name">London</div>
+        <div class="time" id="london-time">--:--:--</div>
+        <div class="timezone">UTC+1 / BST</div>
+      </div>
+    </div>
+    <div class="clock-card" id="newyork-card">
+      <div class="status" id="newyork-status">
+        <div class="status-dot"></div>
+        <span class="status-badge" id="newyork-status-text">Closed</span>
+      </div>
+      <div class="info">
+        <div class="session-name">New York</div>
+        <div class="time" id="newyork-time">--:--:--</div>
+        <div class="timezone">UTC-4 / EDT</div>
+      </div>
+    </div>
+    <div class="clock-card" id="tokyo-card">
+      <div class="status" id="tokyo-status">
+        <div class="status-dot"></div>
+        <span class="status-badge" id="tokyo-status-text">Closed</span>
+      </div>
+      <div class="info">
+        <div class="session-name">Tokyo</div>
+        <div class="time" id="tokyo-time">--:--:--</div>
+        <div class="timezone">UTC+9 / JST</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function formatTime(date, offsetHours) {
+    const utc = date.getTime() + date.getTimezoneOffset() * 60000;
+    const local = new Date(utc + offsetHours * 3600000);
+    return `${pad(local.getHours())}:${pad(local.getMinutes())}:${pad(local.getSeconds())}`;
+  }
+  function isWeekend(date) {
+    const day = date.getUTCDay();
+    return day === 0 || day === 6;
+  }
+  function isOpen(date, utcHour, utcMin, openHour, closeHour) {
+    if (isWeekend(date)) return false;
+    return (utcHour * 60 + utcMin) >= openHour * 60 && (utcHour * 60 + utcMin) < closeHour * 60;
+  }
+  function setStatus(cardId, statusTextId, open) {
+    document.getElementById(cardId).classList.toggle('open', open);
+    document.getElementById(statusTextId).textContent = open ? 'Open' : 'Closed';
+  }
+  function tick() {
+    const now = new Date();
+    const utcH = now.getUTCHours(), utcM = now.getUTCMinutes();
+    document.getElementById('london-time').textContent = formatTime(now, 1);
+    document.getElementById('newyork-time').textContent = formatTime(now, -4);
+    document.getElementById('tokyo-time').textContent = formatTime(now, 9);
+    setStatus('london-card', 'london-status-text', isOpen(now, utcH, utcM, 7, 16));
+    setStatus('newyork-card', 'newyork-status-text', isOpen(now, utcH, utcM, 12, 21));
+    setStatus('tokyo-card', 'tokyo-status-text', isOpen(now, utcH, utcM, 0, 9));
+    document.getElementById('weekend-banner').classList.toggle('visible', isWeekend(now));
+  }
+  tick();
+  setInterval(tick, 1000);
+</script>
+</body>
+</html>
