@@ -5,130 +5,144 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trading Sessions</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #F5F5F7;
-    --surface: #FFFFFF;
-    --text: #1D1D1F;
-    --muted: #86868B;
-    --green: #34C759;
-  }
-  html, body { background: transparent !important; color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
-  body { display: flex; align-items: center; justify-content: center; padding: 10px 16px; }
-  .wrap { width: 100%; }
-  .clocks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .clock-card {
-    background: var(--surface);
-    border-radius: 16px;
-    padding: 14px 16px;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 76px;
-    transition: border-color 0.3s;
-    border: 1.5px solid rgba(0,0,0,0.08);
-  }
-  .clock-card.open { border-color: #34C759; }
-  .status {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-  }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #AEAEB2; }
-  .clock-card.open .status-dot { background: var(--green); animation: pulse 1.5s infinite; }
-  .status-badge {
-    font-size: 9px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 2px 6px;
-    border-radius: 20px;
-    background: #F0F0F0;
-    color: #AEAEB2;
-    white-space: nowrap;
-  }
-  .clock-card.open .status-badge { background: #D4F5DF; color: #1A7A38; }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-  .info { text-align: center; }
-  .session-name { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
-  .clock-card.open .session-name { color: #1D1D1F; }
-  .time { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; line-height: 1; margin-bottom: 3px; }
-  .timezone { font-size: 9px; color: var(--muted); font-weight: 400; letter-spacing: 0.02em; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --green: #30D158;
+  --green-bg: rgba(48,209,88,0.09);
+  --green-border: rgba(48,209,88,0.35);
+  --green-glow: rgba(48,209,88,0.14);
+  --orange: #FF9F0A;
+  --text: #1D1D1F;
+  --muted: #86868B;
+  --card-bg: #FFFFFF;
+  --card-border: rgba(0,0,0,0.08);
+  --track-bg: #F2F2F7;
+}
+html, body { background: transparent; color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
+body { padding: 12px; }
+.wrap { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+.overlap-banner { display: none; align-items: center; gap: 8px; background: rgba(255,159,10,0.09); border: 1px solid rgba(255,159,10,0.28); border-radius: 12px; padding: 9px 14px; font-size: 11px; font-weight: 600; color: #9A5700; letter-spacing: 0.02em; }
+.overlap-banner.visible { display: flex; }
+.overlap-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); animation: pulse 1.5s ease-in-out infinite; flex-shrink: 0; }
+.overlap-label { flex: 1; }
+.overlap-remaining { font-size: 10px; font-weight: 700; color: #7A4200; background: rgba(255,159,10,0.15); padding: 2px 8px; border-radius: 20px; }
+.clocks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.clock-card { background: var(--card-bg); border: 1.5px solid var(--card-border); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; transition: border-color 0.35s ease, box-shadow 0.35s ease; box-shadow: 0 1px 6px rgba(0,0,0,0.05); }
+.clock-card.open { border-color: var(--green-border); box-shadow: 0 2px 18px var(--green-glow); }
+.card-body { padding: 13px 14px 11px; flex: 1; display: flex; flex-direction: column; gap: 7px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; }
+.session-name { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; transition: color 0.3s; }
+.clock-card.open .session-name { color: #1D1D1F; }
+.status-pill { display: flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; padding: 2px 7px 2px 5px; border-radius: 20px; background: var(--track-bg); color: #AEAEB2; transition: background 0.3s, color 0.3s; }
+.status-pill-dot { width: 5px; height: 5px; border-radius: 50%; background: #C7C7CC; transition: background 0.3s; }
+.clock-card.open .status-pill { background: var(--green-bg); color: #1B7E35; }
+.clock-card.open .status-pill-dot { background: var(--green); animation: pulse 1.5s ease-in-out infinite; }
+.time { font-size: 25px; font-weight: 700; letter-spacing: -0.8px; line-height: 1; color: var(--text); font-variant-numeric: tabular-nums; }
+.card-footer { display: flex; align-items: center; justify-content: space-between; }
+.timezone { font-size: 9px; color: var(--muted); font-weight: 500; letter-spacing: 0.03em; }
+.countdown { font-size: 9px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; transition: color 0.3s; }
+.clock-card.open .countdown { color: #C84B00; }
+.progress-track { height: 3px; background: var(--track-bg); }
+.progress-fill { height: 100%; width: 0%; background: var(--green); transition: width 1s linear; border-radius: 0 2px 0 0; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div class="overlap-banner" id="overlap-banner">
+    <div class="overlap-dot"></div>
+    <span class="overlap-label">London / New York Overlap — High Liquidity</span>
+    <span class="overlap-remaining" id="overlap-remaining"></span>
+  </div>
   <div class="clocks">
     <div class="clock-card" id="london-card">
-      <div class="status">
-        <div class="status-dot"></div>
-        <span class="status-badge" id="london-status-text">Closed</span>
-      </div>
-      <div class="info">
-        <div class="session-name">London</div>
+      <div class="card-body">
+        <div class="card-header">
+          <span class="session-name">London</span>
+          <span class="status-pill"><span class="status-pill-dot"></span><span id="london-status">Closed</span></span>
+        </div>
         <div class="time" id="london-time">--:--:--</div>
-        <div class="timezone">UTC+1 / BST</div>
+        <div class="card-footer">
+          <span class="timezone">Europe / London</span>
+          <span class="countdown" id="london-countdown"></span>
+        </div>
       </div>
+      <div class="progress-track"><div class="progress-fill" id="london-bar"></div></div>
     </div>
     <div class="clock-card" id="newyork-card">
-      <div class="status">
-        <div class="status-dot"></div>
-        <span class="status-badge" id="newyork-status-text">Closed</span>
-      </div>
-      <div class="info">
-        <div class="session-name">New York</div>
+      <div class="card-body">
+        <div class="card-header">
+          <span class="session-name">New York</span>
+          <span class="status-pill"><span class="status-pill-dot"></span><span id="newyork-status">Closed</span></span>
+        </div>
         <div class="time" id="newyork-time">--:--:--</div>
-        <div class="timezone">UTC-4 / EDT</div>
+        <div class="card-footer">
+          <span class="timezone">America / New York</span>
+          <span class="countdown" id="newyork-countdown"></span>
+        </div>
       </div>
+      <div class="progress-track"><div class="progress-fill" id="newyork-bar"></div></div>
     </div>
     <div class="clock-card" id="tokyo-card">
-      <div class="status">
-        <div class="status-dot"></div>
-        <span class="status-badge" id="tokyo-status-text">Closed</span>
-      </div>
-      <div class="info">
-        <div class="session-name">Tokyo</div>
+      <div class="card-body">
+        <div class="card-header">
+          <span class="session-name">Tokyo</span>
+          <span class="status-pill"><span class="status-pill-dot"></span><span id="tokyo-status">Closed</span></span>
+        </div>
         <div class="time" id="tokyo-time">--:--:--</div>
-        <div class="timezone">UTC+9 / JST</div>
+        <div class="card-footer">
+          <span class="timezone">Asia / Tokyo</span>
+          <span class="countdown" id="tokyo-countdown"></span>
+        </div>
       </div>
+      <div class="progress-track"><div class="progress-fill" id="tokyo-bar"></div></div>
     </div>
   </div>
 </div>
 <script>
-  function pad(n) { return String(n).padStart(2, '0'); }
-  function formatTime(date, offsetHours) {
-    const utc = date.getTime() + date.getTimezoneOffset() * 60000;
-    const local = new Date(utc + offsetHours * 3600000);
-    return `${pad(local.getHours())}:${pad(local.getMinutes())}:${pad(local.getSeconds())}`;
+const SESSIONS = [
+  { id: 'london', tz: 'Europe/London', openUTC: 7, closeUTC: 16, cardId: 'london-card', timeId: 'london-time', statusId: 'london-status', countdownId: 'london-countdown', barId: 'london-bar' },
+  { id: 'newyork', tz: 'America/New_York', openUTC: 12, closeUTC: 21, cardId: 'newyork-card', timeId: 'newyork-time', statusId: 'newyork-status', countdownId: 'newyork-countdown', barId: 'newyork-bar' },
+  { id: 'tokyo', tz: 'Asia/Tokyo', openUTC: 0, closeUTC: 9, cardId: 'tokyo-card', timeId: 'tokyo-time', statusId: 'tokyo-status', countdownId: 'tokyo-countdown', barId: 'tokyo-bar' },
+];
+const fmtTime = tz => new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date());
+function isWeekend(date) { const d = date.getUTCDay(); return d === 0 || d === 6; }
+function sessionInfo(now, openUTC, closeUTC) {
+  const nowMins = now.getUTCHours() * 60 + now.getUTCMinutes();
+  const DAY = 1440, open = openUTC * 60, close = closeUTC * 60;
+  let isOpen, minsLeft, progress;
+  if (open < close) {
+    isOpen = nowMins >= open && nowMins < close;
+    if (isOpen) { minsLeft = close - nowMins; progress = (nowMins - open) / (close - open) * 100; }
+    else { minsLeft = nowMins < open ? open - nowMins : DAY - nowMins + open; progress = 0; }
+  } else {
+    isOpen = nowMins >= open || nowMins < close;
+    const duration = DAY - open + close;
+    if (isOpen) { minsLeft = nowMins >= open ? DAY - nowMins + close : close - nowMins; const elapsed = nowMins >= open ? nowMins - open : DAY - open + nowMins; progress = elapsed / duration * 100; }
+    else { minsLeft = open - nowMins; progress = 0; }
   }
-  function isWeekend(date) { const d = date.getUTCDay(); return d === 0 || d === 6; }
-  function isOpen(date, utcHour, utcMin, openHour, closeHour) {
-    if (isWeekend(date)) return false;
-    return (utcHour * 60 + utcMin) >= openHour * 60 && (utcHour * 60 + utcMin) < closeHour * 60;
-  }
-  function setStatus(cardId, statusTextId, open) {
-    document.getElementById(cardId).classList.toggle('open', open);
-    document.getElementById(statusTextId).textContent = open ? 'Open' : 'Closed';
-  }
-  function tick() {
-    const now = new Date();
-    const utcH = now.getUTCHours(), utcM = now.getUTCMinutes();
-    document.getElementById('london-time').textContent = formatTime(now, 1);
-    document.getElementById('newyork-time').textContent = formatTime(now, -4);
-    document.getElementById('tokyo-time').textContent = formatTime(now, 9);
-    setStatus('london-card', 'london-status-text', isOpen(now, utcH, utcM, 7, 16));
-    setStatus('newyork-card', 'newyork-status-text', isOpen(now, utcH, utcM, 12, 21));
-    setStatus('tokyo-card', 'tokyo-status-text', isOpen(now, utcH, utcM, 0, 9));
-  }
-  tick();
-  setInterval(tick, 1000);
+  return { isOpen, minsLeft, progress };
+}
+function fmtCountdown(mins) { const h = Math.floor(mins / 60), m = mins % 60; return h > 0 ? `${h}h ${String(m).padStart(2,'0')}m` : `${m}m`; }
+function tick() {
+  const now = new Date(), weekend = isWeekend(now);
+  SESSIONS.forEach(s => {
+    document.getElementById(s.timeId).textContent = fmtTime(s.tz);
+    const { isOpen, minsLeft, progress } = weekend ? { isOpen: false, minsLeft: 0, progress: 0 } : sessionInfo(now, s.openUTC, s.closeUTC);
+    document.getElementById(s.cardId).classList.toggle('open', isOpen);
+    document.getElementById(s.statusId).textContent = isOpen ? 'Open' : 'Closed';
+    document.getElementById(s.barId).style.width = isOpen ? `${progress.toFixed(2)}%` : '0%';
+    const cd = document.getElementById(s.countdownId);
+    cd.textContent = weekend ? 'Weekend' : (isOpen ? `Closes ${fmtCountdown(minsLeft)}` : `Opens ${fmtCountdown(minsLeft)}`);
+  });
+  const utcMins = now.getUTCHours() * 60 + now.getUTCMinutes();
+  const inOverlap = !weekend && utcMins >= 720 && utcMins < 960;
+  document.getElementById('overlap-banner').classList.toggle('visible', inOverlap);
+  if (inOverlap) document.getElementById('overlap-remaining').textContent = fmtCountdown(960 - utcMins) + ' left';
+}
+tick();
+setInterval(tick, 1000);
 </script>
 </body>
 </html>
