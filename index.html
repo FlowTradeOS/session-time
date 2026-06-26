@@ -12,7 +12,6 @@
   --green-bg: rgba(48,209,88,0.09);
   --green-border: rgba(48,209,88,0.35);
   --green-glow: rgba(48,209,88,0.14);
-  --orange: #FF9F0A;
   --text: #1D1D1F;
   --muted: #86868B;
   --card-bg: #FFFFFF;
@@ -22,11 +21,6 @@
 html, body { background: transparent; color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
 body { padding: 12px; }
 .wrap { width: 100%; display: flex; flex-direction: column; gap: 10px; }
-.overlap-banner { display: none; align-items: center; gap: 8px; background: rgba(255,159,10,0.09); border: 1px solid rgba(255,159,10,0.28); border-radius: 12px; padding: 9px 14px; font-size: 11px; font-weight: 600; color: #9A5700; letter-spacing: 0.02em; }
-.overlap-banner.visible { display: flex; }
-.overlap-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); animation: pulse 1.5s ease-in-out infinite; flex-shrink: 0; }
-.overlap-label { flex: 1; }
-.overlap-remaining { font-size: 10px; font-weight: 700; color: #7A4200; background: rgba(255,159,10,0.15); padding: 2px 8px; border-radius: 20px; }
 .clocks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .clock-card { background: var(--card-bg); border: 1.5px solid var(--card-border); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; transition: border-color 0.35s ease, box-shadow 0.35s ease; box-shadow: 0 1px 6px rgba(0,0,0,0.05); }
 .clock-card.open { border-color: var(--green-border); box-shadow: 0 2px 18px var(--green-glow); }
@@ -50,11 +44,6 @@ body { padding: 12px; }
 </head>
 <body>
 <div class="wrap">
-  <div class="overlap-banner" id="overlap-banner">
-    <div class="overlap-dot"></div>
-    <span class="overlap-label">London / New York Overlap — High Liquidity</span>
-    <span class="overlap-remaining" id="overlap-remaining"></span>
-  </div>
   <div class="clocks">
     <div class="clock-card" id="london-card">
       <div class="card-body">
@@ -136,10 +125,6 @@ function tick() {
     const cd = document.getElementById(s.countdownId);
     cd.textContent = weekend ? 'Weekend' : (isOpen ? `Closes ${fmtCountdown(minsLeft)}` : `Opens ${fmtCountdown(minsLeft)}`);
   });
-  const utcMins = now.getUTCHours() * 60 + now.getUTCMinutes();
-  const inOverlap = !weekend && utcMins >= 720 && utcMins < 960;
-  document.getElementById('overlap-banner').classList.toggle('visible', inOverlap);
-  if (inOverlap) document.getElementById('overlap-remaining').textContent = fmtCountdown(960 - utcMins) + ' left';
 }
 tick();
 setInterval(tick, 1000);
